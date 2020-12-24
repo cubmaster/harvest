@@ -15,47 +15,44 @@ export default class ZMQ
      ready:boolean = false;
     // tslint:disable-next-line:variable-name
      connect_info = {
-        "shell_port": 54768,
-        "iopub_port": 54769,
-        "stdin_port": 54770,
-        "control_port": 54772,
-        "hb_port": 54771,
-        "ip": "127.0.0.1",
-        "key": "6f0d7de5-eaaccb5d97169de9b81da9a0",
-        "transport": "tcp",
-        "signature_scheme": "hmac-sha256",
-        "kernel_name": ""
-    };
+         "shell_port": 55650,
+         "iopub_port": 55651,
+         "stdin_port": 55652,
+         "control_port": 55654,
+         "hb_port": 55653,
+         "ip": "127.0.0.1",
+         "key": "919ecdf6-070baf2d4df9e4ee6844e033",
+         "transport": "tcp",
+         "signature_scheme": "hmac-sha256",
+         "kernel_name": ""
+     };
 
     constructor(_io: Server) {
         this.io = _io;
+
     }
         // tslint:disable-next-line:variable-name
     async init() {
         this.heartbeat = new zmq.Request();
+        this.shell = new zmq.Dealer();
+        this.control = new zmq.Dealer();
+        this.IOPub = new zmq.Subscriber();
+        this.stdin = new zmq.Dealer();
 
-        await this.heartbeat.bind(this.connect_info.transport + '://' + this.connect_info.ip + ':' + this.connect_info.hb_port)
-        console.log("Producer bound to port 3000")
+        await this.heartbeat.connect(this.connect_info.transport + '://' + this.connect_info.ip + ':' + this.connect_info.hb_port);
+        await this.shell.connect(this.connect_info.transport + '://' + this.connect_info.ip + ':' + this.connect_info.shell_port);
+        await this.control.connect(this.connect_info.transport + '://' + this.connect_info.ip + ':' + this.connect_info.control_port);
+        await this.IOPub.connect(this.connect_info.transport + '://' + this.connect_info.ip + ':' + this.connect_info.control_port);
+        await this.stdin.connect(this.connect_info.transport + '://' + this.connect_info.ip + ':' + this.connect_info.control_port);
+    }
+
+    async SendHeartbeat(){
         const msg = new JupyterContentComm();
         await this.heartbeat.send(new JupyterContentComm())
         const [result] = await this.heartbeat.receive()
 
-        console.log(result)
-
-
+        console.log(result);
     }
-
-
-       //this.shell = new zmq.Dealer();
-       //this.shell.connect(connect_info.transport + '://' + connect_info.ip + ':' + connect_info.shell_port);
-        //
-        //this.control = new zmq.Dealer( );
-        //this.control.connect(connect_info.transport + '://' + connect_info.ip + ':' + connect_info.control_port);
-        //this.stdin = new zmq.Dealer( );
-        //this.stdin.connect(connect_info.transport + '://' + connect_info.ip + ':' + connect_info.stdin_port);
-        //this.IOPub = new zmq.Sub();
-        //this.IOPub.connect(connect_info.transport + '://' + connect_info.ip + ':' + connect_info.iopub_port);
-        //this.IOPub.subscribe("IOPub");
 
 
 
@@ -63,11 +60,10 @@ export default class ZMQ
     async SendShell(msg: JupyterMessage) {
 
 
-        //this.shell.send(msg).then(()=>{
-        //    console.log('Shell Sent');
-        //}).catch(err=>{
-        //    console.log("SendShell" + JSON.stringify(err));
-        //});
+        await this.shell.send(msg)
+        const [result] = await this.shell.receive()
+
+        console.log(result);
 
 
     }

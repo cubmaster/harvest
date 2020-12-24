@@ -9,10 +9,10 @@ const server = new http.Server(app);
 const io = new socketio.Server(server);
 const zmq = new ZMQ(io);
 zmq.init().then(()=>{
-    console.log("execute");
+    zmq.SendHeartbeat().then();
 });
 
-//const ct = new CalcTest(io);
+const ct = new CalcTest(io);
 
 server.listen(process.env.PORT || 3000, () => {
     console.log(`Application listening on port ${process.env.PORT || 3000}!`);

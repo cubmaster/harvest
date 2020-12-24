@@ -16,8 +16,10 @@ export default class JupyterClientBase {
     sendShell(msgtype:JupyterMessageType,content:object,cell:any){
         const msg = this._session.BuildMessage(msgtype,content);
         const _zmq = new ZMQ(this._io);
+        _zmq.init().then(()=>{
+            _zmq.SendShell(msg).then();
+        })
 
-        _zmq.SendShell(msg).then();
 
     }
 
